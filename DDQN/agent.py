@@ -2,19 +2,27 @@ from kaggle_environments.envs.hungry_geese.hungry_geese import Observation, Conf
 Action, row_col
 from vector import create_state_vector, get_action
 from model import DDQN
-from argparse import Namespace
+from options import read_namespace
+import os
 
 NUM_STATES = 77
 NUM_ACTIONS = 4
 EPSILON = 0
 ACTIONS = ['NORTH', 'SOUTH', 'EAST', 'WEST']
 
-OPTIONS = Namespace(batch_size=128, lr=1e-05, gamma=0.9, eps=0.01, mem_cap=2000,\
-                    num_episodes=2000, num_test=100, save_path='./saved_models/',\
-                    q_net_iter=100, save_interval=100, testing='1', test_model='ddqn-final-10000.pt')
+OPTIONS_JSON = 'test_options.json'
+opt = read_namespace(OPTIONS_JSON)
+ddqn = DDQN(NUM_STATES, NUM_ACTIONS, EPSILON, opt)
+model_fpath = opt.save_path + opt.test_model
 
-ddqn = DDQN(NUM_STATES, NUM_ACTIONS, EPSILON, OPTIONS)
-ddqn.load(ddqn.opt.save_path + ddqn.opt.test_model)
+if os.path.isfile(model_fpath):
+  ddqn.load(model_fpath)
+  for i in ddqn.eval_net.parameters():
+    print(i)
+
+  print(sum(p.numel() for p in ddqn.eval_net.parameters()))
+# else:
+#   raise FileNotFoundError("DDQN torch model %s does not exist" % model_fpath)
 
 
 def agent(obs_dict, config_dict):

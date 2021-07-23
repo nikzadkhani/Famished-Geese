@@ -1,0 +1,13 @@
+{
+  "testing": 1,
+  "save_path": "./saved_models/",
+  "test_model": "ddqn-final.pt",
+  "mem_cap": 0,
+  "num_episodes": 0,
+  "lr": 0,
+  "gamma": 0,
+  "eps": 0,
+  "num_test": 0,
+  "save_interval": 0,
+  "q_net_iter": 0
+}

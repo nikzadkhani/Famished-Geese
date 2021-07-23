@@ -1,6 +1,5 @@
 
 import numpy as np
-
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
@@ -10,11 +9,10 @@ class Net(nn.Module):
 
     def __init__(self, num_states, num_actions):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(num_states, 128)
+        self.fc1 = nn.Linear(num_states, 64)
         self.fc1.weight.data.normal_(0,0.1)
-        self.fc2 = nn.Linear(128,256)
-        self.fc2.weight.data.normal_(0,0.1)
-        self.out = nn.Linear(256,num_actions)
+        self.fc2 = nn.Linear(64,32)
+        self.out = nn.Linear(32,num_actions)
         self.out.weight.data.normal_(0,0.1)
 
     def forward(self,x):
@@ -106,7 +104,7 @@ class DDQN():
       self.optimizer.step()
 
   def ep_decay(self, EPS_DECAY, steps_done):
-      EPS_END = 0.05
+      EPS_END = 0.01
       EPS_START = self.epsilon_start
       self.epsilon = EPS_END + (EPS_START - EPS_END) * (1 - steps_done / EPS_DECAY)
 

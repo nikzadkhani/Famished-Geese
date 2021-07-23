@@ -1,4 +1,5 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
+from json import load
 
 # DEFAULT PARAMETERS
 BATCH_SIZE = 128
@@ -23,6 +24,22 @@ def get_parser() -> ArgumentParser:
   parser.add_argument('--save_path', required=True, help='where all models will be saved')
   parser.add_argument('--q_net_iter', default=Q_NETWORK_ITERATION, type=int, help='number of iterations to wait before we update the target network')
   parser.add_argument('--save_interval', type=int,default=SAVE_INTERVAL, help='how often to save the model to the save_path; default=%i' % SAVE_INTERVAL)
-  parser.add_argument('--testing', required=True, help='set 1 if testing old model and 0 if training new model')
+  parser.add_argument('--testing', type=int, required=True, help='set 1 if testing old model and 0 if training new model')
   parser.add_argument('--test_model', help='file name of test model in save_path')
   return parser
+
+def read_namespace(fpath: str) -> Namespace:
+  """
+  Read in the argparse.Namespace from file rather than cmd line for submission to kaggle
+  Most of these arguments are unused so this is mostly just to make the code work, eventually 
+  need to fix this garbage...
+  Keeping the data namespace to be consisting with training...
+  :param fpath: The filepath to the arguments settings in json format
+  :returns: Argparse namespace object
+  """
+  with open(fpath, 'r') as f:
+    d = load(f)
+  namespace = Namespace()
+  namespace_d = vars(namespace) # returns dict attribute of namespace
+  namespace_d.update(d)
+  return namespace

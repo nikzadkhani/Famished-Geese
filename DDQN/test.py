@@ -1,20 +1,39 @@
+import sys
 import numpy as np
-import torch
-
+from graphics import render_env
 from model import DDQN
 from kaggle_environments import make
 from tqdm import trange
 from agent import agent
 
 
-env = make("hungry_geese", debug=True)
+env = make("hungry_geese")
 
-def is_win(observations) -> bool:
+
+def test_single_episode(render=False):
+  observations = env.run([agent, "greedy", "greedy", "greedy"])
+
+  if render:
+    render_env(env)
+    for i,o in enumerate(observations):
+      print("Iteration :", i)
+      for observed in o:
+        print(observed)
+      print()
+
+    response = input("Press any key to continue or q to stop the program:\n")
+    print("Player 0 is the white goose")
+    if response =="q":
+      quit()
+
+
   last_observation = observations[-1]
 
+  final_player_goose = observations[-1][0].observation.geese[0]
+
   # if goose is dead
-  if len(last_observation[0]) == 0:
-    return False
+  if len(final_player_goose) == 0:
+    return False, len(final_player_goose)
   
   best_length = 0
   for goose in last_observation:
@@ -22,16 +41,7 @@ def is_win(observations) -> bool:
       best_length = len(goose)
   
   # return if our goose was the best
-  return best_length == len(last_observation[0])
-
-
-
-def test_single_episode(render=False):
-  step_counter = 0
-  done = False
-
-  observations = env.run([agent, "greedy", "greedy", "greedy"])
-  return is_win(observations), len(observations[-1][0])
+  return best_length == len(final_player_goose), len(final_player_goose)
   
 def test(num_episodes):
   num_wins = 0
