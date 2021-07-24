@@ -20,10 +20,10 @@ def create_state_vector(state: kaggle_environments.utils.Struct) -> np.array:
   assert(len(state.geese) > 1)
 
   PLAYER_HEAD = 0
-  PLAYER_BODY = 1
-  ENEMY_HEAD = 2
-  ENEMY_BODY = 3
-  FOOD = 4
+  PLAYER_BODY = -1
+  ENEMY_HEAD = -1
+  ENEMY_BODY = -1
+  FOOD = 1
 
   vector = np.zeros((77))
   

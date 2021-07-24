@@ -17,10 +17,10 @@ model_fpath = opt.save_path + opt.test_model
 
 if os.path.isfile(model_fpath):
   ddqn.load(model_fpath)
-  for i in ddqn.eval_net.parameters():
-    print(i)
+  # for i in ddqn.eval_net.parameters():
+  #   print(i)
 
-  print(sum(p.numel() for p in ddqn.eval_net.parameters()))
+  # print(sum(p.numel() for p in ddqn.eval_net.parameters()))
 # else:
 #   raise FileNotFoundError("DDQN torch model %s does not exist" % model_fpath)
 

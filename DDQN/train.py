@@ -26,11 +26,11 @@ def calculate_reward(state, new_state) -> int:
 
   # If goose dies, punish corpse
   if new_goose_len == 0:
-    return -750
+    return -1000
  
   # If goose got bigger, give pat on back
   if new_goose_len > goose_len:
-    return 200
+    return 500
 
   def manhattan_distance(x1, y1, x2, y2): return abs(x1-x2) + abs(y1-y2)
 
@@ -53,9 +53,9 @@ def calculate_reward(state, new_state) -> int:
   # if we move closer to food then give a little reward
   # note we could have just gotten lucky with a food spawn
   if new_closest_food < closest_food:
-    return 25
+    return 5
 
-  return -5
+  return -2
   
 
 
@@ -98,8 +98,8 @@ def train(ddqn: DDQN, num_episodes):
   for i in trange(num_episodes):
     ddqn.ep_decay(num_episodes, i)
     reward, did_win = train_single_episode(ddqn)
-    rewards.append(reward)
-    wins.append(did_win)
+    ddqn.writer.add_scalar('total episode reward', reward, i)
+    ddqn.writer.add_scalar('wins', did_win, i)
 
     # Save model, rewards, and wins every save interval
     if i % ddqn.opt.save_interval == 0:
@@ -119,6 +119,7 @@ def train(ddqn: DDQN, num_episodes):
   ddqn.save(ddqn_path + '.pt')
   np.savetxt(reward_path, rewards, fmt="%4.1d")
   np.savetxt(wins_path, wins, fmt="%1d")
+  print("Finished Training")
 
   
 

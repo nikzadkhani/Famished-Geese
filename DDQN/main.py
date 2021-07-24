@@ -3,6 +3,7 @@ from model import DDQN
 from train import train
 from test import test
 from options import get_parser
+import matplotlib.pyplot as plt
 import os
 import numpy as np
 import torch
@@ -22,11 +23,14 @@ def main():
   
   if opt.testing:
     print('Starting testing...\n')
-    test(opt.num_episodes)
+    ddqn = DDQN(NUM_STATES, NUM_ACTIONS, opt.eps, opt)
+    ddqn.load(opt.save_path + opt.test_model)
+    test(ddqn, opt.num_episodes, render=opt.render)
   else:
     print('Starting training...\n')
     ddqn = DDQN(NUM_STATES, NUM_ACTIONS, opt.eps, opt)
     train(ddqn, opt.num_episodes)
+    # print(ddqn.losses)
 
 
 if __name__ == '__main__':

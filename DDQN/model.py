@@ -3,24 +3,36 @@ import numpy as np
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
+from torch.utils.tensorboard import SummaryWriter
+
 
 
 class Net(nn.Module):
 
     def __init__(self, num_states, num_actions):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(num_states, 64)
-        self.fc1.weight.data.normal_(0,0.1)
-        self.fc2 = nn.Linear(64,32)
-        self.out = nn.Linear(32,num_actions)
-        self.out.weight.data.normal_(0,0.1)
+        self.fc1 = nn.Linear(num_states, 128)
+        # self.fc1.weight.data.normal_(0,0.1)
+        self.fc2 = nn.Linear(128,256)
+        self.fc3 = nn.Linear(256, 512)
+        self.fc4 = nn.Linear(512, 256)
+        self.fc5 = nn.Linear(256,num_actions)
+        # self.fc3.weight.data.normal_(0,0.1)
+        self.softmax = nn.Softmax(0)
+        
 
     def forward(self,x):
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
         x = F.relu(x)
-        action_prob = self.out(x)
+        x = self.fc3(x)
+        x = F.relu(x)
+        x = self.fc4(x)
+        x = F.relu(x)
+        x = self.fc5(x)
+        # print(x.shape)
+        action_prob = self.softmax(x)
         return action_prob
 
 class DDQN():
@@ -38,11 +50,15 @@ class DDQN():
     # why the NUM_STATE*2 +2
     # When we store the memory, we put the state, action, reward and next_state in the memory
     # here reward and action is a number, state is a ndarray
+
     self.optimizer = optim.Adam(self.eval_net.parameters(), lr=opt.lr)
     # self.optimizer = torch.optim.SGD(self.eval_net.parameters(), lr=LR)
-    self.loss_func = nn.MSELoss()
+    self.loss_func = nn.HuberLoss()
     self.epsilon_start = epsilon
     self.epsilon = epsilon
+
+    self.writer = SummaryWriter()
+    
 
     self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # self.device = 'cpu'
@@ -97,14 +113,17 @@ class DDQN():
       with torch.no_grad():
           q_next = self.target_net(batch_next_state)
       q_target = batch_reward + self.opt.gamma * q_next.max(1, keepdim=True)[0]
+    #   print(q_eval.shape)
+    #   print(q_target.shape)
       loss = self.loss_func(q_eval, q_target)
+      self.writer.add_scalar('is this loss?', loss, self.learn_step_counter)
 
       self.optimizer.zero_grad()
       loss.backward()
       self.optimizer.step()
 
   def ep_decay(self, EPS_DECAY, steps_done):
+      self.writer.add_scalar('epsilon', self.epsilon, self.learn_step_counter)
       EPS_END = 0.01
       EPS_START = self.epsilon_start
       self.epsilon = EPS_END + (EPS_START - EPS_END) * (1 - steps_done / EPS_DECAY)
-
