@@ -1,3 +1,6 @@
 *__pycache__/
-DDQN/saved_models/
-DDQN/runs/
+DDQN/saved_models/*
+DDQN/runs/*
+/geese-tf-env
+/geese-torch-env
+/bin
