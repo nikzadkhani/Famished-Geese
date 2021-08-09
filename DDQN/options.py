@@ -12,6 +12,7 @@ NUM_TEST = 100
 SAVE_INTERVAL = 100
 Q_NETWORK_ITERATION = 100
 RENDER=0
+NUM_CONV=2
 
 def get_parser() -> ArgumentParser:
   parser = ArgumentParser()
@@ -28,6 +29,7 @@ def get_parser() -> ArgumentParser:
   parser.add_argument('--testing', type=int, required=True, help='set 1 if testing old model and 0 if training new model')
   parser.add_argument('--test_model', help='file name of test model in save_path')
   parser.add_argument('--render', type=bool, default=RENDER, help='if 0 will not render anything else will render each testing example to browser; default=%i' % RENDER)
+  parser.add_argument('--num_conv', type=int, default=NUM_CONV, help='The number of convolution layers that will encode the grid')
   return parser
 
 def read_namespace(fpath: str) -> Namespace:

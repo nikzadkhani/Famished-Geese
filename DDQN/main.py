@@ -23,13 +23,14 @@ def main():
   
   if opt.testing:
     print('Starting testing...\n')
-    ddqn = DDQN(NUM_STATES, NUM_ACTIONS, opt.eps, opt)
+    ddqn = DDQN(NUM_STATES, NUM_ACTIONS, opt.num_conv, opt.eps, opt)
     ddqn.load(opt.save_path + opt.test_model)
-    test(ddqn, opt.num_episodes, render=opt.render)
+    print(opt.render)
+    test(ddqn, opt.num_episodes, render=False)
   else:
     print('Starting training...\n')
-    ddqn = DDQN(NUM_STATES, NUM_ACTIONS, opt.eps, opt)
-    train(ddqn, opt.num_episodes)
+    ddqn = DDQN(NUM_STATES, NUM_ACTIONS, opt.num_conv, opt.eps, opt)
+    train(ddqn, opt.num_episodes, opt)
     # print(ddqn.losses)
 
 

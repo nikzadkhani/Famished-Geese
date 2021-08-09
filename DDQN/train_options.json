@@ -1,12 +1,12 @@
 {
   "testing": 0,
   "save_path": "./saved_models/",
-  "mem_cap": 5000,
+  "mem_cap": 10,
   "lr": 0.0001,
   "gamma": 0.9,
   "eps": 0.45,
   "num_episodes": 1000,
   "save_interval": 100,
-  "q_net_iter": 100,
-  "batch_size": 512
+  "q_net_iter": 10,
+  "batch_size": 10
 }

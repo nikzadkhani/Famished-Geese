@@ -4,3 +4,4 @@ DDQN/runs/*
 /geese-tf-env
 /geese-torch-env
 /bin
+/logs
