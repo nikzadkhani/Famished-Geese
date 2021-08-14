@@ -26,12 +26,12 @@ source geese-tf-env/bin/activate
 ```
 Note: order matters with the above commands
 
-Objectives:
-Training:
+## Objectives
+### Training:
 Run Train.py to start training the agent. 
-Checkpointing:
+### Checkpointing:
 Train.py creates a variable for a checkpoint directory that can be either restored or initialized. 
-Logging and visualizations:
+### Logging and visualizations:
 You can view existing logs from the commandline by typing:
 
 '''
