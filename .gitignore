@@ -5,3 +5,4 @@ DDQN/runs/*
 /geese-torch-env
 /bin
 /logs
+*./DDQN/.ipynb_checkpoints
