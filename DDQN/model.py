@@ -1,5 +1,6 @@
 
 import numpy as np
+from numpy.core.fromnumeric import partition
 import torch
 from torch import nn, optim
 from torch.nn import functional as F
@@ -86,12 +87,18 @@ class GeeseNet(nn.Module):
         self.fc2 = nn.Linear(64, 4)
 
     def forward(self, x):
+        print(x.shape)
         x = F.leaky_relu(self.bn1(self.conv1(x)))
+        print(x.shape)
         x = F.leaky_relu(self.bn2(self.conv2(x)))
+        print(x.shape)
         x = F.leaky_relu(self.bn3(self.conv3(x)))
+        print(x.shape)
         x = self.flatten(x)
         x = F.leaky_relu(self.fc1(x))
+        print(x.shape)
         x = F.leaky_relu(self.fc2(x))
+        print(x.shape)
         return x
 
 
@@ -140,12 +147,28 @@ class ReplayMemory(object):
 
     def __init__(self, capacity):
         self.memory = deque([], maxlen=capacity)
+        self.terminal_memory = deque([], maxlen=capacity)
+        self.terminal_memory_count = 0
+
 
     def push(self, *args):
         """Save a transition"""
         self.memory.append(Transition(*args))
+    
+    def push_terminal(self, *args):
+        """save terminal memories"""
+        self.terminal_memory.append(Transition(*args))
+        self.terminal_memory_count += 1
 
     def sample(self, batch_size):
+        # partition = batch_size//4
+        # if self.terminal_memory_count > partition:
+        #     # batch size needs to be divisible by 4
+        #     assert(partition * 4 == batch_size)
+        #     batch = random.sample(self.memory, partition * 3) + \
+        #         random.sample(self.terminal_memory, partition)
+        #     random.shuffle(batch)
+        #     return batch
         return random.sample(self.memory, batch_size)
 
     def __len__(self):
@@ -188,7 +211,7 @@ class DDQN():
 
         # Setup Experience Replay
         self.replay_memory = ReplayMemory(opt.mem_cap)
-        print(sys.getsizeof(self.replay_memory))
+        # print(sys.getsizeof(self.replay_memory))
 
         self.optimizer = optim.Adam(self.eval_net.parameters(), lr=opt.lr)
         # update lr 4 times
@@ -260,11 +283,13 @@ class DDQN():
 
         return action
 
-    def store_transition(self, state, action, reward, next_state):
+    def store_transition(self, state, action, reward, next_state, done):
         action = torch.tensor([[action]], dtype=torch.int64, device=self.device)
         reward = torch.tensor([reward], device=self.device)
 
         self.replay_memory.push(state, action, next_state, reward)
+        # if done:
+        #     self.replay_memory.push_terminal(state, action, next_state, reward)
         self.memory_counter += 1
 
     def learn(self):
@@ -286,7 +311,7 @@ class DDQN():
                                                 batch.next_state)), device=self.device, dtype=torch.bool)
         non_final_next_states = torch.cat([s for s in batch.next_state
                                         if s is not None]).to(self.device)
-
+        # hmm is the problem that we are calculating the states incorrectly
         # sample batch from memory
         batch_state = torch.cat(batch.state).to(self.device)
         batch_action = torch.cat(batch.action)
@@ -294,22 +319,36 @@ class DDQN():
         # batch_next_state = torch.cat(batch.next_state).to(self.device)
 
         q_eval = self.eval_net(batch_state)
-        q_eval = q_eval.gather(1, batch_action)
+        # q_eval = q_eval.gather(1, batch_action)
 
-        next_state_values = torch.zeros(self.opt.batch_size, device=self.device)
+        next_state_values = torch.zeros(self.opt.batch_size, self.num_actions, device=self.device)
         next_state_values[non_final_mask] = self.target_net(
-            non_final_next_states).max(1)[0].detach()
+            non_final_next_states).detach()
 
-
+        # print("\n")
         # with torch.no_grad():
         #     q_next = self.target_net(batch_next_state)
         # q_target = batch_reward + self.opt.gamma * \
         #     q_next.max(1, keepdim=True)[0]
         # print(q_target.shape)
         #   print(q_eval.shape)
+        # print(batch_action.shape)
 
-        q_target = batch_reward + (next_state_values * self.opt.gamma)
-        q_target = q_target.unsqueeze(1)
+        q_target = torch.zeros(self.opt.batch_size, self.num_actions, device=self.device)
+
+        q = batch_reward + (next_state_values[range(self.opt.batch_size), batch_action] * self.opt.gamma)
+
+        q_target[range(self.opt.batch_size), batch_action] = q
+        # q_target = q_target.unsqueeze(1)
+
+        if self.learn_step_counter % 200 == 0:
+            print(q_target.flatten()[:10])
+            print(next_state_values.flatten()[:10])
+            print(batch_reward.flatten()[:10])
+            print(batch_action.flatten()[:10])
+            print()
+        self.writer.add_scalar('average q', q_target.detach().mean(), self.learn_step_counter)
+
 
         assert(q_eval.shape == q_target.shape)
         loss = self.loss_func(q_eval, q_target)
@@ -318,12 +357,11 @@ class DDQN():
             'loss?',
             loss.detach().item(),
             self.learn_step_counter)
-        # self.writer.add_graph(self.eval_net, input_to_model=batch_state)
+        if self.memory_counter == self.opt.mem_cap:
+            self.writer.add_graph(self.eval_net, input_to_model=batch_state)
         self.optimizer.zero_grad()
         loss.backward()
         
-        for param in self.eval_net.parameters():
-            param.grad.data.clamp_(-1, 1)
         self.optimizer.step()
         # self.lr_scheduler.step()
 

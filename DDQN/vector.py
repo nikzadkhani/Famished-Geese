@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from model import DDQN
 
-ACTIONS = ['NORTH', 'SOUTH', 'EAST', 'WEST']
+ACTIONS = ['NORTH', 'SOUTH', 'WEST', 'EAST']
 
 
 def create_state_vector(state: kaggle_environments.utils.Struct) -> np.array:
@@ -93,7 +93,9 @@ def create_norm_state_vector(
 
     if previous_state is not None:
         for player_number, geese_positions in enumerate(previous_state.geese):
-            vector[12 + (player_number - state.index) % 4, geese_positions] = 1
+            for pos in geese_positions[:1]:
+                # print("Hello")
+                vector[12 + (player_number - state.index) % 4, pos] = 1
 
     # food
     for position in state.food:

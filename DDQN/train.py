@@ -61,19 +61,20 @@ def calculate_reward(state, new_state) -> int:
     closest_food = float("inf")
     for food_pos in state.food:
         food_x, food_y = row_col(food_pos, NUM_COLS)
-        dist = toroidal_manhattan_distance(goose_x, goose_y, food_x, food_y)
+        dist = manhattan_distance(goose_x, goose_y, food_x, food_y)
         closest_food = min(closest_food, dist)
 
     new_closest_food = float("inf")
     for food_pos in new_state.food:
         food_x, food_y = row_col(food_pos, NUM_COLS)
-        dist = toroidal_manhattan_distance(
+        dist = manhattan_distance(
             new_goose_x, new_goose_y, food_x, food_y)
         new_closest_food = min(closest_food, dist)
 
+    # print(new_closest_food, closest_food)
     # if we move closer to food then give a little reward
     # note we could have just gotten lucky with a food spawn
-    if new_closest_food < closest_food:
+    if new_closest_food <= closest_food:
         return (18 - new_closest_food)**2
 
     # gives smaller reward if food was close
@@ -101,7 +102,7 @@ def train_single_episode(ddqn: DDQN):
         new_state_vector = create_norm_state_vector(new_state, state)
 
         # reward = reward + calculate_reward(state, new_state)
-        if not done and reward == 0:
+        if done and reward == 0:
             reward = -1000
 
         # Store for experience replay
@@ -109,7 +110,7 @@ def train_single_episode(ddqn: DDQN):
             state_vector,
             action_vector,
             reward,
-            new_state_vector)
+            new_state_vector, done)
 
         ddqn.learn()
 
@@ -122,23 +123,24 @@ def train_single_episode(ddqn: DDQN):
 
 
 def train(ddqn: DDQN, num_episodes, opt):
-    # rewards = []
-    # wins = []
+    rewards = []
+    wins = []
     net_name = opt.net_type
 
     for i in trange(num_episodes, miniters=num_episodes / 500):
         ddqn.ep_decay(num_episodes, i)
         reward, did_win = train_single_episode(ddqn)
-        ddqn.writer.add_scalar('total episode reward', reward, i)
-        ddqn.writer.add_scalar('wins', did_win, i)
+        if i > 50:
+            ddqn.writer.add_scalar('average episode reward', np.mean(rewards[-50:]), i)
+            ddqn.writer.add_scalar('average_wins', np.mean(wins[-50:]), i)
 
         if i % 500 == 0:
             ddqn.writer.flush()
             # snapshot = tracemalloc.take_snapshot()
             # display_top(snapshot)
 
-        # rewards.append(reward)
-        # wins.append(did_win)
+        rewards.append(reward)
+        wins.append(did_win)
 
         # Save model, rewards, and wins every save interval
         if i % ddqn.opt.save_interval == 0:

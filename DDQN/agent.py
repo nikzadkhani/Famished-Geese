@@ -8,7 +8,7 @@ import os
 NUM_STATES = 77
 NUM_ACTIONS = 4
 EPSILON = 0
-ACTIONS = ['NORTH', 'SOUTH', 'EAST', 'WEST']
+ACTIONS = ['NORTH', 'SOUTH', 'WEST', 'EAST']
 
 OPTIONS_JSON = 'test_options.json'
 opt = read_namespace(OPTIONS_JSON)
