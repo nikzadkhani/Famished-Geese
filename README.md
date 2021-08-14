@@ -34,9 +34,9 @@ Train.py creates a variable for a checkpoint directory that can be either restor
 ### Logging and visualizations:
 You can view existing logs from the commandline by typing:
 
-'''
+```
 Tensorboard --logdir logs-big
-'''
+```
 
 This will open up a web page in your browser and allow you to review past tensorboard events as well as stream the results of current training runs.
 
