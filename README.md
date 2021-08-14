@@ -24,10 +24,21 @@ module unload tensorflow python3
 module load python3/3.8.10 tensorflow/2.5.0
 source geese-tf-env/bin/activate
 ```
-Run Train.py to start training the agent. You may need to change logs directories and checkpoint directories to make sure you don't overwrite existing runs
-
 Note: order matters with the above commands
 
+Objectives:
+Training:
+Run Train.py to start training the agent. 
+Checkpointing:
+Train.py creates a variable for a checkpoint directory that can be either restored or initialized. 
+Logging and visualizations:
+You can view existing logs from the commandline by typing:
+
+'''
+Tensorboard --logdir logs-big
+'''
+
+This will open up a web page in your browser and allow you to review past tensorboard events as well as stream the results of current training runs.
 
 Link to google slides
 
