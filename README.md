@@ -20,3 +20,8 @@ module load python3/3.8.10 tensorflow/2.5.0
 source geese-tf-env/bin/activate
 ```
 Note: order matters with the above commands
+
+
+Link to google slides
+
+https://docs.google.com/presentation/d/1FcyikhtENs2Bqo-xRVE65cZJX57OnCBr/edit?usp=sharing&ouid=113817137264964264363&rtpof=true&sd=true
